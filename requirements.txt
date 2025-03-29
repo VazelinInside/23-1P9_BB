@@ -1,2 +1,8 @@
 peewee
 pymysql
+PyJWT
+fastapi
+passlib
+python-multipart
+fastapi[standard]
+bcrypt==4.0.1
