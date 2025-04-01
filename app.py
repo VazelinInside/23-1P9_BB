@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta, timezone
-from typing import Annotated
+from typing import Annotated, List
 
 import jwt
 from fastapi import Depends, FastAPI, HTTPException, status
@@ -31,6 +31,7 @@ class User(BaseModel):
     username: str
     name: str | None = None
     link_tg: str | None = None
+    roles: List[str] | None = None
 
 
 class UserInDB(User):
@@ -54,14 +55,19 @@ def get_password_hash(password):
 
 def get_user(username: str):
     user = m.User.get_or_none(username=username)
-    print(user)
     if user is not None:
-        print(user.username)
+        user_roles: List[m.UserRole] = (
+            m.UserRole
+            .select()
+            .where(m.UserRole.user_id == user.id)
+        )
+
         return UserInDB(
             username=user.username,
             name=user.name,
             link_tg=user.link_tg,
-            hashed_password=user.password
+            hashed_password=user.password,
+            roles = [ur.role.name for ur in user_roles]
         )
 
 def authenticate_user(username: str, password: str):
@@ -128,3 +134,7 @@ async def read_users_me(
     current_user: Annotated[User, Depends(get_current_user)],
 ):
     return current_user
+
+@app.post("/registration")
+async def registration():
+    pass
